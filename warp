@@ -176,6 +176,7 @@ function getrc() {
     #env | grep WARP
     #printf "rc file processed...\n"
   else
+    echo
     #printf "no rc file found, loading defaults...\n";
   fi
 }
