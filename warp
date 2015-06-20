@@ -14,7 +14,7 @@ read_args() {
   # no args, just print help
   if [ $# == 0 ]; then
     # docker is installed, print out docker help + warp help
-    if command_exists dockier; then
+    if command_exists docker; then
       (
         # testing 80 width output
         out=$(/usr/local/bin/docker)
