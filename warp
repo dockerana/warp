@@ -1,11 +1,15 @@
 #!/bin/sh
 set -e
+trap "exit 1" TERM
+export TOP_PID=$$
 
 # relies on the following:
 #
 # bash, other derivatives?
 # awk
 # cut
+# eval
+# kill
 # which ?
 # fmt ?
 # egrep ? (version?)
@@ -35,7 +39,26 @@ function get_docker_commands() {
   done <<< "$out"
 }
 
-function read_args() {
+run_native_docker() {
+  if [ -n "$1" ]
+  then
+    docker_command=0
+    for i in "${DOCKER_COMMANDS[@]}"
+    do
+      if [ "$i" == "$1" ] ; then
+        docker_command=1
+      fi
+    done
+  fi
+  if [ "$docker_command" == 1 ]; then
+    # XXX maybe use `which` instead?
+    dkr_native="/usr/local/bin/docker $*"
+    eval $dkr_native
+    kill -s TERM $TOP_PID
+  fi
+}
+
+read_args() {
   # no args, just print help
   if [ $# == 0 ]; then
     # docker is installed, print out docker help + warp help
@@ -70,12 +93,7 @@ function read_args() {
         # docker is installed, get native docker commands
         # check command, if native docker command, pass off
         get_docker_commands
-        echo ${DOCKER_COMMANDS[@]}
-
-        if [ -n "$1" ]
-        then
-          echo "Parameter #1 is $1"
-        fi
+        run_native_docker $*
       )
     # if docker is not installed, give options to install/uninstall/upgrade
     else
@@ -98,7 +116,6 @@ function read_args() {
   then
     echo "Parameter #3 is $3"
   fi
-
 
   if [ -n "${10}" ]  # Parameters > $9 must be enclosed in {brackets}.
   then
