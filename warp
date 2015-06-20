@@ -5,17 +5,20 @@ export TOP_PID=$$
 
 # relies on the following:
 #
+# bash, other derivatives?
 # awk
 # cut
 # eval
 # kill
 # which ?
+# fmt ?
+# egrep ? (version?)
 
-command_exists() {
+function command_exists() {
   command -v "$@" > /dev/null 2>&1
 }
 
-get_docker_commands() {
+function get_docker_commands() {
   DOCKER_COMMANDS=()
   # XXX maybe use `which` instead?
   out=$(/usr/local/bin/docker)
@@ -114,7 +117,6 @@ read_args() {
     echo "Parameter #3 is $3"
   fi
 
-
   if [ -n "${10}" ]  # Parameters > $9 must be enclosed in {brackets}.
   then
     echo "Parameter #10 is ${10}"
@@ -128,6 +130,25 @@ read_args() {
   echo
 }
 
+function getrc() {
+
+  # defaults, all easily overwritten with well-formed definitions in your very own ~/.warprc
+  export WARP_WIDTH=80
+  export WARP_ERROR_BG=RED
+  export WARP_ERROR_FG=BRIGHTWHITE
+
+  if [ -f ~/.warprc ]
+  then
+    #printf "processing rc file...\n";
+    $(egrep '^WARP_[A-Z0-9_]+=[A-Za-z0-9]+$' ~/.warprc | sed -e 's/^/export /')
+    #env | grep WARP
+    #printf "rc file processed...\n"
+  else
+    #printf "no rc file found, loading defaults...\n";
+  fi
+}
+
+getrc
 read_args $*
 
 exit 0
