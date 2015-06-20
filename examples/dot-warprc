@@ -1,0 +1,13 @@
+# place a .warprc file in your home directory for color and formatting customization
+#
+# all variables are defined here in this example file, and must be
+# well formatted as they are shell interpreted.
+#
+# bogus variables are discarded.
+#
+# defaults:
+#   WARP_WIDTH=80
+#   WARP_ERROR_BG=RED
+#   WARP_ERROR_FG=BRIGHTWHITE
+
+WARP_WIDTH=160
