@@ -5,9 +5,31 @@ set -e
 #
 # awk
 # cut
+# which ?
 
 command_exists() {
   command -v "$@" > /dev/null 2>&1
+}
+
+get_docker_commands() {
+  DOCKER_COMMANDS=()
+  # XXX maybe use `which` instead?
+  out=$(/usr/local/bin/docker)
+  flag=0
+  while read -r line; do
+    if [ $flag == 1 ]; then
+      comm=($line)
+      comm="${comm[0]}"
+      if [ "$comm" == "" ]; then
+        flag=0
+      else
+        DOCKER_COMMANDS+=($comm)
+      fi
+    fi
+    if [[ "$line" =~ ^Commands: ]]; then
+      flag=1
+    fi
+  done <<< "$out"
 }
 
 read_args() {
@@ -17,6 +39,7 @@ read_args() {
     if command_exists docker; then
       (
         # testing 80 width output
+        # XXX maybe use `which` instead?
         out=$(/usr/local/bin/docker)
         while read -r line; do
           echo "$line" | cut -c1-80
@@ -42,24 +65,14 @@ read_args() {
     if command_exists docker; then
       (
         # docker is installed, get native docker commands
-        DOCKER_COMMANDS=()
-        out=$(/usr/local/bin/docker)
-        flag=0
-        while read -r line; do
-          if [ $flag == 1 ]; then
-            comm=($line)
-            comm="${comm[0]}"
-            if [ "$comm" == "" ]; then
-              flag=0
-            else
-              DOCKER_COMMANDS+=($comm)
-            fi
-          fi
-          if [[ "$line" =~ ^Commands: ]]; then
-            flag=1
-          fi
-        done <<< "$out"
+        # check command, if native docker command, pass off
+        get_docker_commands
         echo ${DOCKER_COMMANDS[@]}
+
+        if [ -n "$1" ]
+        then
+          echo "Parameter #1 is $1"
+        fi
       )
     # if docker is not installed, give options to install/uninstall/upgrade
     else
