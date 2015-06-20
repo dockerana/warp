@@ -16,11 +16,11 @@ export TOP_PID=$$
 
 version=0.1.0
 
-function command_exists() {
+command_exists() {
   command -v "$@" > /dev/null 2>&1
 }
 
-function get_docker_commands() {
+get_docker_commands() {
   DOCKER_COMMANDS=()
   # XXX maybe use `which` instead?
   out=$(/usr/local/bin/docker)
@@ -41,7 +41,7 @@ function get_docker_commands() {
   done <<< "$out"
 }
 
-function run_native_docker() {
+run_native_docker() {
   if [ -n "$1" ]
   then
     docker_command=0
@@ -60,7 +60,7 @@ function run_native_docker() {
   fi
 }
 
-function run_install_command() {
+run_install_command() {
   warp_install_commands=("install" "uninstall" "upgrade")
 
   # credit to https://get.docker.com/
@@ -90,7 +90,7 @@ function run_install_command() {
   fi
 }
 
-function read_args() {
+read_args() {
   # no args, just print help
   if [ $# == 0 ]; then
     # docker is installed, print out docker help + warp help
@@ -162,7 +162,7 @@ function read_args() {
   echo
 }
 
-function getrc() {
+getrc() {
 
   # defaults, all easily overwritten with well-formed definitions in your very own ~/.warprc
   export WARP_WIDTH=80
