@@ -85,7 +85,7 @@ run_install_command() {
       if [ $1 == "$i" ]; then
         if [ $1 == "install" ]; then
           # XXX read in $2 to see if it is docker, machine, compose, all, etc.
-          if [ -n "$2" ]
+          if [ -n "$2" ]; then
             for j in "${ecosystem[@]}"
             do
               if [ $2 == "$j" ]; then
