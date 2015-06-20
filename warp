@@ -105,17 +105,13 @@ read_args() {
       )
     # docker is not yet installed
     else
-      echo "Usage: docker [OPTIONS] COMMAND [arg...]"
-      echo
-      echo "This is warp, Docker is not currently installed."
-      echo
-      echo "Commands:"
-      echo "\tinstall\t\t Install various ecosystem components including Docker"
-      echo "\tuninstall\t Uninstall various ecosystem components including Docker"
-      echo "\tupgrade\t\t Upgrade various ecosystem components including Docker"
-      echo
-      echo "Run 'docker COMMAND --help' for more information on a command."
-      echo
+      printf "Usage: docker [OPTIONS] COMMAND [arg...]\n\n"
+      printf "\tThis is warp, Docker is not currently installed.\n\n"
+      printf "Commands:\n"
+      printf "\tinstall\t\t Install various ecosystem components including Docker\n"
+      printf "\tuninstall\t Uninstall various ecosystem components including Docker\n"
+      printf "\tupgrade\t\t Upgrade various ecosystem components including Docker\n\n"
+      printf "Run 'docker COMMAND --help' for more information on a command.\n\n"
     fi
   # there are args, do something
   else
