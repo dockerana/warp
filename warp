@@ -1,22 +1,100 @@
 #!/bin/sh
 set -e
+trap "exit 1" TERM
+export TOP_PID=$$
 
 # relies on the following:
 #
 # awk
 # cut
+# eval
+# kill
+# which ?
+
+version=0.1.0
 
 command_exists() {
   command -v "$@" > /dev/null 2>&1
+}
+
+get_docker_commands() {
+  DOCKER_COMMANDS=()
+  # XXX maybe use `which` instead?
+  out=$(/usr/local/bin/docker)
+  flag=0
+  while read -r line; do
+    if [ $flag == 1 ]; then
+      comm=($line)
+      comm="${comm[0]}"
+      if [ "$comm" == "" ]; then
+        flag=0
+      else
+        DOCKER_COMMANDS+=($comm)
+      fi
+    fi
+    if [[ "$line" =~ ^Commands: ]]; then
+      flag=1
+    fi
+  done <<< "$out"
+}
+
+run_native_docker() {
+  if [ -n "$1" ]
+  then
+    docker_command=0
+    for i in "${DOCKER_COMMANDS[@]}"
+    do
+      if [ "$i" == "$1" ] ; then
+        docker_command=1
+      fi
+    done
+  fi
+  if [ "$docker_command" == 1 ]; then
+    # XXX maybe use `which` instead?
+    dkr_native="/usr/local/bin/docker $*"
+    eval $dkr_native
+    kill -s TERM $TOP_PID
+  fi
+}
+
+run_install_command() {
+  warp_install_commands=("install" "uninstall" "upgrade")
+
+  # credit to https://get.docker.com/
+  curl=''
+  if command_exists curl; then
+    curl='curl -sSL'
+  elif command_exists wget; then
+    curl='wget -qO-'
+  elif command_exists busybox && busybox --list-modules | grep -q wget; then
+    curl='busybox wget -qO-'
+  fi
+
+  if [ -n "$1" ]
+  then
+    for i in "${warp_install_commands[@]}"
+    do
+      if [ $1 == "$i" ]; then
+        if [ $1 == "install" ]; then
+          # XXX read in $2 to see if it is docker, machine, compose, all, etc.
+          echo "installing docker..."
+          install_dkr="$curl https://get.docker.io/ | sh"
+          eval $install_dkr
+          kill -s TERM $TOP_PID
+        fi
+      fi
+    done
+  fi
 }
 
 read_args() {
   # no args, just print help
   if [ $# == 0 ]; then
     # docker is installed, print out docker help + warp help
-    if command_exists dockier; then
+    if command_exists docker; then
       (
         # testing 80 width output
+        # XXX maybe use `which` instead?
         out=$(/usr/local/bin/docker)
         while read -r line; do
           echo "$line" | cut -c1-80
@@ -39,31 +117,16 @@ read_args() {
   # there are args, do something
   else
     # if docker is installed, get native commands for wrapping
-    if command_exists docker; then
+    if command_exists dockier; then
       (
         # docker is installed, get native docker commands
-        DOCKER_COMMANDS=()
-        out=$(/usr/local/bin/docker)
-        flag=0
-        while read -r line; do
-          if [ $flag == 1 ]; then
-            comm=($line)
-            comm="${comm[0]}"
-            if [ "$comm" == "" ]; then
-              flag=0
-            else
-              DOCKER_COMMANDS+=($comm)
-            fi
-          fi
-          if [[ "$line" =~ ^Commands: ]]; then
-            flag=1
-          fi
-        done <<< "$out"
-        echo ${DOCKER_COMMANDS[@]}
+        # check command, if native docker command, pass off
+        get_docker_commands
+        run_native_docker $*
       )
     # if docker is not installed, give options to install/uninstall/upgrade
     else
-      echo "TODO"
+      run_install_command $*
     fi
   fi
 
