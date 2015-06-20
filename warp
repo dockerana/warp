@@ -64,7 +64,74 @@ run_native_docker() {
   fi
 }
 
-run_install_command() {
+warp_install_command() {
+  # read in $2 to see if it is docker, machine, compose, all, etc.
+  if [ -n "$2" ]; then
+    comm_exists=0
+    for j in "${ecosystem[@]}"
+    do
+      if [ $2 == "$j" ]; then
+        if [[ $2 == "docker" || $2 == "all" ]]; then
+          comm_exists=1
+          echo "installing docker..."
+          if command_exists docker; then
+            echo "docker already installed, skipping..."
+          else
+            install_comm="$curl https://get.docker.io/ | sh"
+            eval $install_comm
+          fi
+        fi
+        if [[ $2 == "machine" || $2 == "all" ]]; then
+          comm_exists=1
+          echo "installing machine..."
+          if command_exists docker-machine; then
+            echo "machine already installed, skipping..."
+          else
+            echo
+            # XXX
+          fi
+        fi
+        if [[ $2 == "compose" || $2 == "all" ]]; then
+          comm_exists=1
+          echo "installing compose..."
+          if command_exists compose; then
+            echo "compose already installed, skipping..."
+          else
+            echo
+            # XXX
+          fi
+        fi
+        if [[ $2 == "swarm" || $2 == "all" ]]; then
+          comm_exists=1
+          echo "installing swarm..."
+          if command_exists swarm; then
+            echo "swarm already installed, skipping..."
+          else
+            echo
+            # XXX
+          fi
+        fi
+      fi
+    done
+    if [ "$comm_exists" == 0 ]; then
+      # XXX show help if second arg isn't known
+      echo "unknown"
+    fi
+  else
+    # XXX show help if second arg isn't supplied
+    echo "need second arg"
+  fi
+}
+
+warp_uninstall_command() {
+  echo
+}
+
+warp_upgrade_command() {
+  echo
+}
+
+run_warp_command() {
   warp_install_commands=("install" "uninstall" "upgrade")
   ecosystem=("docker" "machine" "compose" "swarm" "all")
 
@@ -84,28 +151,11 @@ run_install_command() {
     do
       if [ $1 == "$i" ]; then
         if [ $1 == "install" ]; then
-          # XXX read in $2 to see if it is docker, machine, compose, all, etc.
-          if [ -n "$2" ]; then
-            for j in "${ecosystem[@]}"
-            do
-              if [ $2 == "$j" ]; then
-                echo "installing $j..."
-                if [ $2 == "docker" || $2 == "all" ]; then
-                  install_comm="$curl https://get.docker.io/ | sh"
-                  eval $install_dkr
-                elif [ $2 == "machine" || $2 == "all" ]; then
-                  # XXX
-                  echo
-                elif [ $2 == "compose" || $2 == "all" ]; then
-                  # XXX
-                  echo
-                elif [ $2 == "swarm" || $2 == "all" ]; then
-                  # XXX
-                  echo
-                fi
-              fi
-            done
-          fi
+          warp_install_command $*
+        elif [ $1 == "uninstall" ]; then
+          warp_uninstall_command $*
+        elif [ $1 == "upgrade" ]; then
+          warp_upgrade_command $*
         fi
       fi
     done
@@ -144,10 +194,8 @@ read_args() {
         get_docker_commands
         run_native_docker $*
       )
-    # if docker is not installed, give options to install/uninstall/upgrade
-    else
-      run_install_command $*
     fi
+    run_warp_command $*
   fi
 
   # XXX fluff notes to be removed
