@@ -6,13 +6,16 @@ export TOP_PID=$$
 # relies on the following:
 #
 # bash, other derivatives?
-# awk
+# egrep ? (version?)
+# sed
 # cut
-# eval
+# eval (shell built-in)
+
+# potential to use for in-dev
+# awk
 # kill
 # which ?
 # fmt ?
-# egrep ? (version?)
 
 version=0.1.0
 
@@ -171,13 +174,8 @@ function getrc() {
 
   if [ -f ~/.warprc ]
   then
-    #printf "processing rc file...\n";
     $(egrep '^WARP_[A-Z0-9_]+=[A-Za-z0-9]+$' ~/.warprc | sed -e 's/^/export /')
-    #env | grep WARP
-    #printf "rc file processed...\n"
-  else
-    echo
-    #printf "no rc file found, loading defaults...\n";
+    #env | egrep ^WARP_
   fi
 }
 
