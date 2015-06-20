@@ -26,7 +26,7 @@ read_args() {
     else
       echo "Usage: docker [OPTIONS} COMMAND [arg...]"
       echo
-      echo "This is \"`basename $0`\", Docker is not currently installed."
+      echo "This is `basename $0`, Docker is not currently installed."
       echo
       echo "Commands:"
       echo "\tinstall\t\t Install various ecosystem components including Docker"
