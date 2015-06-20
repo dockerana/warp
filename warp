@@ -58,11 +58,15 @@ run_native_docker() {
     dkr_native="$(which docker) $*"
     eval $dkr_native
     kill -s TERM $TOP_PID
+  else
+    # XXX check against machine, compose, custom add-ins, etc.
+    echo
   fi
 }
 
 run_install_command() {
   warp_install_commands=("install" "uninstall" "upgrade")
+  ecosystem=("docker" "machine" "compose" "swarm" "all")
 
   # credit to https://get.docker.com/
   curl=''
@@ -81,10 +85,27 @@ run_install_command() {
       if [ $1 == "$i" ]; then
         if [ $1 == "install" ]; then
           # XXX read in $2 to see if it is docker, machine, compose, all, etc.
-          echo "installing docker..."
-          install_dkr="$curl https://get.docker.io/ | sh"
-          eval $install_dkr
-          kill -s TERM $TOP_PID
+          if [ -n "$2" ]
+            for j in "${ecosystem[@]}"
+            do
+              if [ $2 == "$j" ]; then
+                echo "installing $j..."
+                if [ $2 == "docker" || $2 == "all" ]; then
+                  install_comm="$curl https://get.docker.io/ | sh"
+                  eval $install_dkr
+                elif [ $2 == "machine" || $2 == "all" ]; then
+                  # XXX
+                  echo
+                elif [ $2 == "compose" || $2 == "all" ]; then
+                  # XXX
+                  echo
+                elif [ $2 == "swarm" || $2 == "all" ]; then
+                  # XXX
+                  echo
+                fi
+              fi
+            done
+          fi
         fi
       fi
     done
