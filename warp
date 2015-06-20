@@ -1,10 +1,14 @@
 #!/bin/sh
 set -e
+trap "exit 1" TERM
+export TOP_PID=$$
 
 # relies on the following:
 #
 # awk
 # cut
+# eval
+# kill
 # which ?
 
 command_exists() {
@@ -30,6 +34,25 @@ get_docker_commands() {
       flag=1
     fi
   done <<< "$out"
+}
+
+run_native_docker() {
+  if [ -n "$1" ]
+  then
+    docker_command=0
+    for i in "${DOCKER_COMMANDS[@]}"
+    do
+      if [ "$i" == "$1" ] ; then
+        docker_command=1
+      fi
+    done
+  fi
+  if [ "$docker_command" == 1 ]; then
+    # XXX maybe use `which` instead?
+    dkr_native="/usr/local/bin/docker $*"
+    eval $dkr_native
+    kill -s TERM $TOP_PID
+  fi
 }
 
 read_args() {
@@ -67,12 +90,7 @@ read_args() {
         # docker is installed, get native docker commands
         # check command, if native docker command, pass off
         get_docker_commands
-        echo ${DOCKER_COMMANDS[@]}
-
-        if [ -n "$1" ]
-        then
-          echo "Parameter #1 is $1"
-        fi
+        run_native_docker $*
       )
     # if docker is not installed, give options to install/uninstall/upgrade
     else
