@@ -110,7 +110,7 @@ function read_args() {
     else
       echo "Usage: docker [OPTIONS} COMMAND [arg...]"
       echo
-      echo "This is `basename $0`, Docker is not currently installed."
+      echo "This is warp, Docker is not currently installed."
       echo
       echo "Commands:"
       echo "\tinstall\t\t Install various ecosystem components including Docker"
@@ -123,7 +123,7 @@ function read_args() {
   # there are args, do something
   else
     # if docker is installed, get native commands for wrapping
-    if command_exists dockier; then
+    if command_exists docker; then
       (
         # docker is installed, get native docker commands
         # check command, if native docker command, pass off
