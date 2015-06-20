@@ -5,17 +5,17 @@ export TOP_PID=$$
 
 # relies on the following:
 #
-# bash, other derivatives?
-# egrep ? (version?)
+# bash (do any/some derivatives work? how to test?)
+# egrep (version?)
 # sed
 # cut
 # eval (shell built-in)
 
 # potential to use for in-dev
-# awk
-# kill
-# which ?
-# fmt ?
+#  awk
+#  kill
+#  which ?
+#  fmt ?
 
 version=0.1.0
 
@@ -108,7 +108,7 @@ function read_args() {
       )
     # docker is not yet installed
     else
-      echo "Usage: docker [OPTIONS} COMMAND [arg...]"
+      echo "Usage: docker [OPTIONS] COMMAND [arg...]"
       echo
       echo "This is warp, Docker is not currently installed."
       echo
