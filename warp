@@ -11,6 +11,8 @@ export TOP_PID=$$
 # kill
 # which ?
 
+version=0.1.0
+
 command_exists() {
   command -v "$@" > /dev/null 2>&1
 }
@@ -55,6 +57,36 @@ run_native_docker() {
   fi
 }
 
+run_install_command() {
+  warp_install_commands=("install" "uninstall" "upgrade")
+
+  # credit to https://get.docker.com/
+  curl=''
+  if command_exists curl; then
+    curl='curl -sSL'
+  elif command_exists wget; then
+    curl='wget -qO-'
+  elif command_exists busybox && busybox --list-modules | grep -q wget; then
+    curl='busybox wget -qO-'
+  fi
+
+  if [ -n "$1" ]
+  then
+    for i in "${warp_install_commands[@]}"
+    do
+      if [ $1 == "$i" ]; then
+        if [ $1 == "install" ]; then
+          # XXX read in $2 to see if it is docker, machine, compose, all, etc.
+          echo "installing docker..."
+          install_dkr="$curl https://get.docker.io/ | sh"
+          eval $install_dkr
+          kill -s TERM $TOP_PID
+        fi
+      fi
+    done
+  fi
+}
+
 read_args() {
   # no args, just print help
   if [ $# == 0 ]; then
@@ -85,7 +117,7 @@ read_args() {
   # there are args, do something
   else
     # if docker is installed, get native commands for wrapping
-    if command_exists docker; then
+    if command_exists dockier; then
       (
         # docker is installed, get native docker commands
         # check command, if native docker command, pass off
@@ -94,7 +126,7 @@ read_args() {
       )
     # if docker is not installed, give options to install/uninstall/upgrade
     else
-      echo "TODO"
+      run_install_command $*
     fi
   fi
 
