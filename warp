@@ -1,20 +1,20 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 trap "exit 1" TERM
 export TOP_PID=$$
 
 # relies on the following:
 #
-# bash (do any/some derivatives work? how to test?)
+# bash > ~3, test against 4 also (do any/some derivatives work? how to test?)
 # egrep (version?)
 # sed
 # cut
 # eval (shell built-in)
+# which
 
 # potential to use for in-dev
 #  awk
 #  kill
-#  which ?
 #  fmt ?
 
 version=0.1.0
