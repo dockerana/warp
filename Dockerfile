@@ -26,7 +26,7 @@ RUN curl -O https://ftp.gnu.org/gnu/bash/$BASH3.tar.gz && \
 # setup shellcheck
 ADD https://github.com/koalaman/shellcheck/archive/master.zip /tmp/
 RUN unzip master.zip && cabal update && cabal install cabal-install && \
-  && cd shellcheck-master && cabal install
+  cd shellcheck-master && cabal install
 
 # setup latest warp!
 ADD https://raw.githubusercontent.com/dockerana/warp/master/warp /tmp/

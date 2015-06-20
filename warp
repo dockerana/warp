@@ -149,12 +149,12 @@ run_warp_command() {
   then
     for i in "${warp_install_commands[@]}"
     do
-      if [ $1 == "$i" ]; then
-        if [ $1 == "install" ]; then
+      if [ "$1" == "$i" ]; then
+        if [ "$1" == "install" ]; then
           warp_install_command $*
-        elif [ $1 == "uninstall" ]; then
+        elif [ "$1" == "uninstall" ]; then
           warp_uninstall_command $*
-        elif [ $1 == "upgrade" ]; then
+        elif [ ""$1" == "upgrade" ]; then
           warp_upgrade_command $*
         fi
       fi
