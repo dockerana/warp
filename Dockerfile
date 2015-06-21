@@ -29,7 +29,7 @@ RUN unzip master.zip && cabal update && cabal install cabal-install && \
   cd shellcheck-master && cabal install
 
 # setup latest warp!
-ADD https://raw.githubusercontent.com/dockerana/warp/master/warp /tmp/
+ADD warp /tmp/
 
 ENTRYPOINT /bin/bash --version && /bin/bash -n warp && printf "[34m[1mtests passed...\n[0m" && \
   ./$BASH3/bash --version && ./$BASH3/bash -n warp && printf "[34m[1mtests passed...\n[0m" && \

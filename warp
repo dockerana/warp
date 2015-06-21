@@ -56,7 +56,7 @@ run_native_docker() {
   fi
   if [ "$docker_command" == 1 ]; then
     dkr_native="$(which docker) $*"
-    eval $dkr_native
+    eval "$dkr_native"
     kill -s TERM $TOP_PID
   else
     # XXX check against machine, compose, custom add-ins, etc.
@@ -70,7 +70,7 @@ warp_install_command() {
     comm_exists=0
     for j in "${ecosystem[@]}"
     do
-      if [ $2 == "$j" ]; then
+      if [ "$2" == "$j" ]; then
         if [[ $2 == "docker" || $2 == "all" ]]; then
           comm_exists=1
           echo "installing docker..."
@@ -78,7 +78,7 @@ warp_install_command() {
             echo "docker already installed, skipping..."
           else
             install_comm="$curl https://get.docker.io/ | sh"
-            eval $install_comm
+            eval "$install_comm"
           fi
         fi
         if [[ $2 == "machine" || $2 == "all" ]]; then
@@ -151,11 +151,11 @@ run_warp_command() {
     do
       if [ "$1" == "$i" ]; then
         if [ "$1" == "install" ]; then
-          warp_install_command $*
+          warp_install_command "$@"
         elif [ "$1" == "uninstall" ]; then
-          warp_uninstall_command $*
+          warp_uninstall_command "$@"
         elif [ "$1" == "upgrade" ]; then
-          warp_upgrade_command $*
+          warp_upgrade_command "$@"
         fi
       fi
     done
@@ -192,10 +192,10 @@ read_args() {
         # docker is installed, get native docker commands
         # check command, if native docker command, pass off
         get_docker_commands
-        run_native_docker $*
+        run_native_docker "$@"
       )
     fi
-    run_warp_command $*
+    run_warp_command "$@"
   fi
 
   echo
@@ -260,6 +260,6 @@ getrc() {
 }
 
 getrc
-read_args $*
+read_args "$@"
 
 exit 0
