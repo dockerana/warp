@@ -60,7 +60,6 @@ additional_custom_commands() {
     for f in $files
     do
       while read p; do
-        #printf "\t $p\n"
         pattern="[0-9a-zA-Z ]+\(\)"
         if [[ "$p" =~ $pattern ]]; then
           printf "\t ${p%(*}\n"
@@ -68,7 +67,7 @@ additional_custom_commands() {
       done <~/.warp/function_namespaces/$d/${f##*/}
     done
   done
-  printf "Run 'docker COMMAND --help' for more information on a command.\n\n"
+  printf "\nRun 'docker COMMAND --help' for more information on a command.\n\n"
 }
 
 get_docker_commands() {
@@ -452,6 +451,32 @@ run_warp_command() {
   fi
 }
 
+run_custom_command() {
+  if [[ -n "$1" && -n "$2" ]]; then
+    namespaces=$(ls ~/.warp/function_namespaces)
+    for d in $namespaces
+    do
+      if [ "$1" == "$d" ]; then
+        files=$(cat ~/.warp/function_namespaces/$d/locations.txt)
+        for f in $files
+        do
+          while read p; do
+            pattern="[0-9a-zA-Z ]+\(\)"
+            if [[ "$p" =~ $pattern ]]; then
+              if [ "$2" == ${p%(*} ]; then
+                shift
+                shift
+                source ~/.warp/function_namespaces/$d/${f##*/}
+                eval ${p%(*} $*
+              fi
+            fi
+          done <~/.warp/function_namespaces/$d/${f##*/}
+        done
+      fi
+    done
+  fi
+}
+
 read_args() {
   # no args, just print help
   if [ $# == 0 ]; then
@@ -495,6 +520,7 @@ read_args() {
       )
     fi
     run_warp_command "$@"
+    run_custom_command "$@"
   fi
 
   echo
