@@ -27,6 +27,25 @@ command_exists() {
   command -v "$@" > /dev/null 2>&1
 }
 
+additional_warp_commands() {
+  printf "\n--------\n\n"
+  printf "Additional warp commands:\n\n"
+  printf "alias\t\t Alias a function name to something else XXX TODO\n"
+  printf "function\t Configure additional custom functions to be added XXX TODO\n"
+  printf "install\t\t Install various ecosystem components including Docker\n"
+  printf "original\t Show only original Docker command output XXX TODO\n"
+  printf "uninstall\t Uninstall various ecosystem components including Docker\n"
+  printf "update\t\t Update various ecosystem components including Docker\n\n"
+  printf "Run 'docker COMMAND --help' for more information on a command.\n"
+}
+
+additional_custom_commands() {
+  printf "\n--------\n\n"
+  printf "Additional custom commands:\n\n"
+  # XXX
+  printf "Run 'docker COMMAND --help' for more information on a command.\n\n"
+}
+
 get_docker_commands() {
   DOCKER_COMMANDS=()
   out=$($(which docker))
@@ -121,12 +140,18 @@ run_native_docker_ecosystem() {
       fi
     else
       if [ "$1" == "compose" ]; then
-        dkr_native="$(which docker-compose)"
-        eval "$dkr_native"
+        out=$(docker-compose 2>&1 | tee)
+        while read -r line; do
+          echo "$line"
+        done <<< "$out"
+        additional_warp_commands
+        additional_custom_commands
         kill -s TERM $TOP_PID
       elif [ "$1" == "machine" ]; then
         dkr_native="$(which docker-machine)"
         eval "$dkr_native"
+        additional_warp_commands
+        additional_custom_commands
         kill -s TERM $TOP_PID
       fi
     fi
@@ -164,6 +189,21 @@ run_native_docker_ecosystem() {
       fi
     done
   fi
+}
+
+warp_alias_command() {
+  # XXX
+  echo "TODO"
+}
+
+warp_function_command() {
+  # XXX
+  echo "TODO"
+}
+
+warp_original_command() {
+  # XXX
+  echo "TODO"
 }
 
 warp_install_command() {
@@ -243,13 +283,13 @@ warp_uninstall_command() {
   echo "TODO"
 }
 
-warp_upgrade_command() {
+warp_update_command() {
   # XXX
   echo "TODO"
 }
 
 run_warp_command() {
-  warp_install_commands=("install" "uninstall" "upgrade")
+  warp_install_commands=("alias" "function" "install" "original" "uninstall" "update")
   ecosystem=("docker" "machine" "compose" "all")
 
   # begin credit to https://get.docker.com/
@@ -282,12 +322,18 @@ run_warp_command() {
     for i in "${warp_install_commands[@]}"
     do
       if [ "$1" == "$i" ]; then
-        if [ "$1" == "install" ]; then
+        if [ "$1" == "alias" ]; then
+          warp_alias_command "$@"
+        elif [ "$1" == "function" ]; then
+          warp_function_command "$@"
+        elif [ "$1" == "install" ]; then
           warp_install_command "$@"
+        elif [ "$1" == "original" ]; then
+          warp_original_command "$@"
         elif [ "$1" == "uninstall" ]; then
           warp_uninstall_command "$@"
-        elif [ "$1" == "upgrade" ]; then
-          warp_upgrade_command "$@"
+        elif [ "$1" == "update" ]; then
+          warp_update_command "$@"
         fi
       fi
     done
@@ -305,15 +351,17 @@ read_args() {
         while read -r line; do
           echo "$line" | cut -c1-80
         done <<< "$out"
+        additional_warp_commands
+        additional_custom_commands
       )
     # docker is not yet installed
     else
       printf "Usage: docker [OPTIONS] COMMAND [arg...]\n\n"
       printf "This is warp $version, Docker is not currently installed.\n\n"
-      printf "Commands:\n"
-      printf "\tinstall\t\t Install various ecosystem components including Docker\n"
-      printf "\tuninstall\t Uninstall various ecosystem components including Docker\n"
-      printf "\tupgrade\t\t Upgrade various ecosystem components including Docker\n\n"
+      printf "Commands:\n\n"
+      printf "install\t\t Install various ecosystem components including Docker\n"
+      printf "uninstall\t Uninstall various ecosystem components including Docker\n"
+      printf "update\t\t Update various ecosystem components including Docker\n\n"
       printf "Run 'docker COMMAND --help' for more information on a command.\n\n"
     fi
   # there are args, do something
