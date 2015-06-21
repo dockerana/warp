@@ -5,9 +5,43 @@
 #
 # bogus variables are discarded.
 #
+# elements that you can colorize:
+#   error
+#   section/action
+#   - tooltip/description (XXX)
+#   line wrap/truncation cues
+#
+# this needs work for interactive sessions...
+#
+# THEMES! find a few themes in this directory. Please feel free to add more!
+#
+#   tiny - phone
+#   tiny - inverted - projector/display...
+#   bright
+#   dark
+#   quiet/subtle
+#   candy & unicorns
+#
 # defaults:
 #   WARP_WIDTH=80
 #   WARP_ERROR_BG=RED
 #   WARP_ERROR_FG=BRIGHTWHITE
 
+# desired terminal width
 WARP_WIDTH=160
+
+# WARP_BEHAVIOR defines line wrapping or truncating modes: 'fold' or 'truncate'
+#WARP_BEHAVIOR=fold # 'truncate' also supported
+WARP_BEHAVIOR=truncate
+
+_BG_ERROR=$_BG_RED
+_FG_ERROR=$_FG_BRIGHT_WHITE
+
+_FG_ACTION=$_FG_BRIGHT_WHITE
+_BG_ACTION=$_BG_BLUE
+_FG_DESCRIPTION=$_FG_BRIGHT_YELLOW
+_BG_DESCRIPTION=$_BG_BLACK
+
+# wrapping cues
+_FG_WRAP=$_FG_BRIGHT_RED
+_BG_WRAP=$_BG_BLACK

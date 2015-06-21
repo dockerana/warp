@@ -1,0 +1,16 @@
+# for presenting on screens/projectors/etc
+# XXX needs default white background for everything
+
+WARP_WIDTH=80
+WARP_BEHAVIOR=wrap
+
+_BG_ERROR=$_BG_RED
+_FG_ERROR=$_FG_BRIGHT_WHITE
+
+_FG_ACTION=$_FG_BRIGHT_GREEN
+_BG_ACTION=$_BG_WHITE
+_FG_DESCRIPTION=$_FG_BRIGHT_CYAN
+_BG_DESCRIPTION=$_BG_WHITE
+
+_FG_WRAP=$_FG_DARK_GREY
+_BG_WRAP=$_BG_YELLOW
