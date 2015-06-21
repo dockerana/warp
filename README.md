@@ -24,4 +24,4 @@ Example of quick install of `docker` and ecosystem tools:
 
 Example of error condition highlighting and accenting for `docker` commands
 
-<img src="https://raw.githubusercontent.com/dockerana/warp/master/documentation/screenshots/3.png" width="50%">
+<img src="https://raw.githubusercontent.com/dockerana/warp/master/documentation/screenshots/3.png" width="66%">
