@@ -510,6 +510,12 @@ run_custom_command() {
 }
 
 read_args() {
+  if [ -n $1 ]; then
+    if [ "$1" == "v" ]; then
+      printf "warp $version\n"
+    fi
+  fi
+
   # no args, just print help
   if [ $# == 0 ]; then
     # docker is installed, print out docker help + warp help
@@ -710,6 +716,16 @@ storage() {
   $(touch ~/.warp/aliases.txt)
 }
 
+check_install() {
+  if command_exists docker; then
+    out=$(docker v 2>&1 | tee)
+    if [[ ! $out =~ *"warp"* ]]; then
+      echo "not aliased yet"
+    fi
+  fi
+}
+
+check_install
 storage
 getrc
 read_args "$@"
