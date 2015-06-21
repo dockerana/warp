@@ -15,6 +15,7 @@ export TOP_PID=$$
 # uname
 # curl | wget
 # sudo | su
+# tee
 
 # potential to use for in-dev
 #  awk
@@ -43,6 +44,7 @@ additional_custom_commands() {
   printf "\n--------\n\n"
   printf "Additional custom commands:\n\n"
   # XXX
+  # update based on found functions in .dotfile and aliases
   printf "Run 'docker COMMAND --help' for more information on a command.\n\n"
 }
 
@@ -193,16 +195,26 @@ run_native_docker_ecosystem() {
 
 warp_alias_command() {
   # XXX
+  # store aliases in .dotfile for given name and list of functions
   echo "TODO"
 }
 
 warp_function_command() {
   # XXX
+  # add
+  #  download or file
+  #  save location in .dotfile
+  #  save name and list of function names in .dotfile
+  # update
+  #  check file or downlaod
+  # rm
+  #  remove location from .dotfile
   echo "TODO"
 }
 
 warp_original_command() {
   # XXX
+  # change alias back for docker, output how to get warp again
   echo "TODO"
 }
 
