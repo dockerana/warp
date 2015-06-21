@@ -198,32 +198,6 @@ read_args() {
     run_warp_command $*
   fi
 
-  # XXX fluff notes to be removed
-  if [ -n "$1" ]              # Tested variable is quoted.
-  then
-    echo "Parameter #1 is $1"  # Need quotes to escape #
-  fi
-
-  if [ -n "$2" ]
-  then
-    echo "Parameter #2 is $2"
-  fi
-
-  if [ -n "$3" ]
-  then
-    echo "Parameter #3 is $3"
-  fi
-
-  if [ -n "${10}" ]  # Parameters > $9 must be enclosed in {brackets}.
-  then
-    echo "Parameter #10 is ${10}"
-  fi
-
-  echo "-----------------------------------"
-  echo "All the command-line parameters are: "$*""
-  shift
-  echo "All the command-line parameters are: "$*""
-
   echo
 }
 
