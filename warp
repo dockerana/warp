@@ -47,24 +47,122 @@ get_docker_commands() {
   done <<< "$out"
 }
 
-run_native_docker() {
-  if [ -n "$1" ]
-  then
-    docker_command=0
+get_compose_commands() {
+  COMPOSE_COMMANDS=()
+  # why is compose output to stderr instead of stdout!??!
+  if [ $(which docker-compose) ]; then
+    out=$(docker-compose 2>&1 | tee)
+  else
+    out=""
+  fi
+  flag=0
+  while read -r line; do
+    if [ $flag == 1 ]; then
+      comm=($line)
+      #comm="${comm[0]}"
+      if [ "$comm" == "" ]; then
+        flag=0
+      else
+        COMPOSE_COMMANDS+=($comm)
+      fi
+    fi
+    if [[ "$line" =~ ^Commands: ]]; then
+      flag=1
+    fi
+  done <<< "$out"
+}
+
+get_machine_commands() {
+  MACHINE_COMMANDS=()
+  out=$($(which docker-machine))
+  flag=0
+  while read -r line; do
+    if [ $flag == 1 ]; then
+      comm=($line)
+      #comm="${comm[0]}"
+      if [ "$comm" == "" ]; then
+        flag=0
+      else
+        MACHINE_COMMANDS+=($comm)
+      fi
+    fi
+    if [[ "$line" =~ ^Commands: ]]; then
+      flag=1
+    fi
+  done <<< "$out"
+}
+
+run_native_docker_ecosystem() {
+  docker_command=0
+  compose_command=0
+  machine_command=0
+  if [ -n "$1" ]; then
     for i in "${DOCKER_COMMANDS[@]}"
     do
       if [ "$i" == "$1" ] ; then
         docker_command=1
       fi
     done
+    if [ -n "$2" ]; then
+      if [ "$1" == "compose" ]; then
+        for i in "${COMPOSE_COMMANDS[@]}"
+        do
+          if [ "$i" == "$2" ] ; then
+            compose_command=1
+          fi
+        done
+      elif [ "$1" == "machine" ]; then
+        for i in "${MACHINE_COMMANDS[@]}"
+        do
+          if [ "$i" == "$2" ] ; then
+            machine_command=1
+          fi
+        done
+      fi
+    else
+      if [ "$1" == "compose" ]; then
+        dkr_native="$(which docker-compose)"
+        eval "$dkr_native"
+        kill -s TERM $TOP_PID
+      elif [ "$1" == "machine" ]; then
+        dkr_native="$(which docker-machine)"
+        eval "$dkr_native"
+        kill -s TERM $TOP_PID
+      fi
+    fi
   fi
   if [ "$docker_command" == 1 ]; then
     dkr_native="$(which docker) $*"
     eval "$dkr_native"
     kill -s TERM $TOP_PID
-  #else
-  #  # XXX check against machine, compose, custom add-ins, etc.
-  #  echo
+  elif [ "$compose_command" == 1 ]; then
+    shift
+    dkr_native="$(which docker-compose) $*"
+    eval "$dkr_native"
+    kill -s TERM $TOP_PID
+  elif [ "$machine_command" == 1 ]; then
+    shift
+    dkr_native="$(which docker-machine) $*"
+    eval "$dkr_native"
+    kill -s TERM $TOP_PID
+  else
+    # checks only commands not in docker_commands
+    for i in "${COMPOSE_COMMANDS[@]}"
+    do
+      if [ "$i" == "$1" ] ; then
+        dkr_native="$(which docker-compose) $*"
+        eval "$dkr_native"
+        kill -s TERM $TOP_PID
+      fi
+    done
+    for i in "${MACHINE_COMMANDS[@]}"
+    do
+      if [ "$i" == "$1" ] ; then
+        dkr_native="$(which docker-machine) $*"
+        eval "$dkr_native"
+        kill -s TERM $TOP_PID
+      fi
+    done
   fi
 }
 
@@ -141,11 +239,13 @@ warp_install_command() {
 }
 
 warp_uninstall_command() {
-  echo
+  # XXX
+  echo "TODO"
 }
 
 warp_upgrade_command() {
-  echo
+  # XXX
+  echo "TODO"
 }
 
 run_warp_command() {
@@ -224,7 +324,14 @@ read_args() {
         # docker is installed, get native docker commands
         # check command, if native docker command, pass off
         get_docker_commands
-        run_native_docker "$@"
+
+        if command_exists docker-compose ; then
+          get_compose_commands
+        fi
+        if command_exists docker-machine ; then
+          get_machine_commands
+        fi
+        run_native_docker_ecosystem "$@"
       )
     fi
     run_warp_command "$@"
