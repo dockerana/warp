@@ -175,7 +175,12 @@ run_native_docker_ecosystem() {
         kill -s TERM $TOP_PID
       elif [ "$1" == "machine" ]; then
         dkr_native="$(which docker-machine)"
-        eval "$dkr_native"
+
+        out=$($dkr_native)
+        IFS=$'\n'
+        fformat $out
+        IFS=$' \t\n'
+
         additional_warp_commands
         additional_custom_commands
         kill -s TERM $TOP_PID
@@ -194,12 +199,22 @@ run_native_docker_ecosystem() {
   elif [ "$compose_command" == 1 ]; then
     shift
     dkr_native="$(which docker-compose) $*"
-    eval "$dkr_native"
+
+    out=$($dkr_native)
+    IFS=$'\n'
+    fformat $out
+    IFS=$' \t\n'
+
     kill -s TERM $TOP_PID
   elif [ "$machine_command" == 1 ]; then
     shift
     dkr_native="$(which docker-machine) $*"
-    eval "$dkr_native"
+
+    out=$($dkr_native)
+    IFS=$'\n'
+    fformat $out
+    IFS=$' \t\n'
+
     kill -s TERM $TOP_PID
   else
     # checks only commands not in docker_commands
@@ -207,7 +222,12 @@ run_native_docker_ecosystem() {
     do
       if [ "$i" == "$1" ] ; then
         dkr_native="$(which docker-compose) $*"
-        eval "$dkr_native"
+
+        out=$($dkr_native)
+        IFS=$'\n'
+        fformat $out
+        IFS=$' \t\n'
+
         kill -s TERM $TOP_PID
       fi
     done
@@ -215,7 +235,12 @@ run_native_docker_ecosystem() {
     do
       if [ "$i" == "$1" ] ; then
         dkr_native="$(which docker-machine) $*"
-        eval "$dkr_native"
+
+        out=$($dkr_native)
+        IFS=$'\n'
+        fformat $out
+        IFS=$' \t\n'
+
         kill -s TERM $TOP_PID
       fi
     done
