@@ -11,6 +11,10 @@ export TOP_PID=$$
 # cut
 # eval (shell built-in)
 # which
+# id
+# uname
+# curl | wget
+# sudo | su
 
 # potential to use for in-dev
 #  awk
@@ -100,9 +104,9 @@ warp_install_command() {
             echo "machine already installed, skipping..."
           else
             machine_url="https://github.com/docker/machine/releases/download/v0.3.0/docker-machine_$platform-$arch"
-            install_comm="$curl $machine_url > $path/docker-machine"
+            install_comm="$sh_c '$curl $machine_url > $path/docker-machine'"
             eval "$install_comm"
-            install_comm="chmod +x $path/docker-machine"
+            install_comm="$sh_c 'chmod +x $path/docker-machine'"
             eval "$install_comm"
           fi
         fi
@@ -114,9 +118,9 @@ warp_install_command() {
           else
             echo
             compose_url="https://github.com/docker/compose/releases/download/1.3.0/docker-compose-$(uname -s)-$(uname -m)"
-            install_comm="$curl $compose_url > $path/docker-compose"
+            install_comm="$sh_c '$curl $compose_url > $path/docker-compose'"
             eval "$install_comm"
-            install_comm="chmod +x $path/docker-compose"
+            install_comm="$sh_c 'chmod +x $path/docker-compose'"
             eval "$install_comm"
           fi
         fi
@@ -148,7 +152,21 @@ run_warp_command() {
   warp_install_commands=("install" "uninstall" "upgrade")
   ecosystem=("docker" "machine" "compose" "all")
 
-  # credit to https://get.docker.com/
+  # begin credit to https://get.docker.com/
+  user="$(id -un 2>/dev/null || true)"
+  sh_c='sh -c'
+  if [ "$user" != 'root' ]; then
+    if command_exists sudo; then
+      sh_c='sudo -E sh -c'
+    elif command_exists su; then
+      sh_c='su -c'
+    else
+      printf "Error: this installer needs the ability to run commands as root.\n"
+      printf "We are unable to find either \"sudo\" or \"su\" available to make this happen.\n"
+      exit 1
+    fi
+  fi
+
   curl=''
   if command_exists curl; then
     curl='curl -sSL'
@@ -157,6 +175,7 @@ run_warp_command() {
   elif command_exists busybox && busybox --list-modules | grep -q wget; then
     curl='busybox wget -qO-'
   fi
+  # end credit
 
   if [ -n "$1" ]
   then
