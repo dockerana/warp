@@ -630,7 +630,7 @@ getrc() {
 
   # defaults, all easily overwritten with well-formed definitions in your
   # very own ~/.warprc
-  export WARP_WIDTH=60
+  export WARP_WIDTH=80
   export WARP_ERROR_BG=$_BG_RED
   export WARP_ERROR_FG=$_FG_BRIGHT_WHITE
 
