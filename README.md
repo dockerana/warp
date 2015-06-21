@@ -17,3 +17,11 @@ Provides capability to dynamically load functions and namespaces from your own h
 ##### Example of wrapping and truncation of output to accomodate different screen sizes. Ever presented docker on a screen with low resolution or tried to use it from your phone? This will help.
 
 <img src="https://raw.githubusercontent.com/dockerana/warp/master/documentation/screenshots/1.png">
+
+##### Example of quick install of `docker` and ecosystem tools:
+
+<img src="https://raw.githubusercontent.com/dockerana/warp/master/documentation/screenshots/2.png">
+
+##### Example of error condition highlighting and accenting for `docker` commands
+
+<img src="https://raw.githubusercontent.com/dockerana/warp/master/documentation/screenshots/3.png">
