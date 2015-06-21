@@ -491,10 +491,14 @@ read_args() {
     if command_exists docker; then
       (
         # testing 80 width output
-        out=$($(which docker))
-        while read -r line; do
-          echo "$line" | cut -c1-80
-        done <<< "$out"
+        out=$($(which docker 2>&1 | tee))
+
+        IFS=$'\n'
+        fformat $out
+        IFS=$' \t\n'
+        #while read -r line; do
+        #  echo "$line" | cut -c1-80
+        #done <<< "$out"
         additional_warp_commands
         additional_custom_commands
       )
