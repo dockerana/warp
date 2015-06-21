@@ -190,8 +190,8 @@ run_native_docker_ecosystem() {
   fi
   if [ "$docker_command" == 1 ]; then
     dkr_native="$(which docker) $*"
-    out=$($dkr_native)
 
+    out=$($dkr_native)
     IFS=$'\n'
     fformat $out
     IFS=$' \t\n'
@@ -570,7 +570,7 @@ loadcolors() {
   # overwritten based on default values for theme
   # XXX prolly need to fill in the blanks for perfect width control? :bicycle:
   export _RESET=$(echo -en '\033[0m')
-  export _NL=$(echo -en '\012')
+  #export _NL=$(echo -en '\012')
 
   #printf "$_FG_GREEN""$_BG_BLUE""asdf""$_RESET"
   #printf "$_FG_GREEN""$_BG_BLUE""asdf""$_C_TRUNC1""$_FG_BRIGHT_CYAN""$_BG_RED""$_C_MORE1""$_RESET"
@@ -619,7 +619,8 @@ fformat() {
     #IFS=$' \t\n'
     #sed ‘s/\(.\{1,80\}\) /\1\n/g’ foo.txt
     #    local in2=$(echo "$in" | sed -E -e "s/(.{1,$WARP_WIDTH}) /\1_NL/g" | sed -E -e "s/_NL([^ ]+$)/ \1/")
-    local in2=$(echo "$in" | sed -E -e "s/(.{1,$WARP_WIDTH}) /\1$_C_MORE1|/g" | sed -E -e "s/..\|([^ ]+)$/ \1/")
+    # caveats to address - lines without spaces, like from `docker inpsect`, usage of pipe
+    local in2=$(echo "$in" | sed -E -e "s/\ +$//" | sed -E -e "s/(.{1,$WARP_WIDTH}) /\1\|/g" | sed -E -e "s/\|([^ ]+)$/ \1/" | sed -E -e "s/\|/$_FG_WRAP$_BG_WRAP$_C_MORE1$_RESET\|/g")
     # | fold -w $WARP_WIDTH)
   elif [[ $WARP_BEHAVIOR == "truncate" ]]; then
     local in2=$(echo "$in" | sed -E -e "s/^(.{$WARP_WIDTH,$WARP_WIDTH}).*/\1$_FG_WRAP$_BG_WRAP$_C_TRUNC1$_RESET/")
