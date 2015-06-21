@@ -12,6 +12,14 @@ Provides capability to dynamically load functions and namespaces from your own h
 
 `warp` has extremely minimal system dependencies (almost 100% `bash`), so it will work as-is on a variety of vanilla and minimal operating systems without extra language support needed, including OS X and Ubuntu.
 
+### Install
+
+```
+curl -sSL warp.dockerana.com > warp
+chmod +x warp
+./warp
+```
+
 ### Screenshots
 
 Example of wrapping and truncation of output to accomodate different screen sizes. Ever presented docker on a screen with low resolution or tried to use it from your phone? This will help.
