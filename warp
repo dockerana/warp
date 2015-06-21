@@ -521,7 +521,7 @@ read_args() {
     # docker is installed, print out docker help + warp help
     if command_exists docker-orig; then
       (
-        out=$($(which docker 2>&1 | tee))
+        out=$($(which docker-orig 2>&1 | tee))
         IFS=$'\n'
         fformat $out
         IFS=$' \t\n'
