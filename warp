@@ -177,7 +177,7 @@ read_args() {
     # docker is not yet installed
     else
       printf "Usage: docker [OPTIONS] COMMAND [arg...]\n\n"
-      printf "This is warp, Docker is not currently installed.\n\n"
+      printf "This is warp $version, Docker is not currently installed.\n\n"
       printf "Commands:\n"
       printf "\tinstall\t\t Install various ecosystem components including Docker\n"
       printf "\tuninstall\t Uninstall various ecosystem components including Docker\n"
