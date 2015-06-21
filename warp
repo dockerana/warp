@@ -208,15 +208,6 @@ warp_alias_command() {
 }
 
 warp_function_command() {
-  # XXX
-  # add
-  #  download or file
-  #  save location in .dotfile
-  #  save name and list of function names in .dotfile
-  # update
-  #  check file or downlaod
-  # rm
-  #  remove location from .dotfile
   function_args=("add" "rm" "update")
   if [ -n "$2" ]; then
     comm_exists=0
@@ -226,20 +217,54 @@ warp_function_command() {
         if [ $2 == "add" ]; then
           comm_exists=1
           if [[ -n "$3" && -n "$4" ]]; then
-            # XXX
-            echo "TODO"
+            # XXX error checking needed
+            $(mkdir -p ~/.warp/function_namespaces/"$3")
+            echo "$4" >> ~/.warp/function_namespaces/$3/locations.txt
+
+            base=$4
+            # it's a url
+            if [[ $4 =~ ^http ]]; then
+              eval $curl $4 > ~/.warp/function_namespaces/$3/${base##*/}
+            # it's a file
+            else
+              $(cp $4 ~/.warp/function_namespaces/$3/${base##*/})
+            fi
           else
-            printf "\nUsage: docker function add [OPTIONS] FILE_URI NAMESPACE\n\n"
+            printf "\nUsage: docker function add [OPTIONS] NAMESPACE URI\n\n"
             printf "Add custom functions from either a file path or a url\n\n"
           fi
         elif [ $2 == "rm" ]; then
           comm_exists=1
-          if [ -n "$3" ]; then
-            # XXX
-            echo "TODO"
+          if [[ -n "$3" && -n "$4" ]]; then
+            # XXX error checking needed
+            location_exists=0
+            if [ -f ~/.warp/function_namespaces/"$3"/locations.txt ]; then
+              while read p; do
+                if [ "$4" == "$p" ]; then
+                  location_exists=1
+                fi
+              done <~/.warp/function_namespaces/"$3"/locations.txt
+            fi
+            if [ "$location_exists" == 1 ]; then
+              out="sed -i -E -e 's|$4||' ~/.warp/function_namespaces/$3/locations.txt"
+              eval $out
+              filename=$4
+              if [ -f ~/.warp/function_namespaces/"$3"/"${filename##*/}" ]; then
+                $(rm ~/.warp/function_namespaces/$3/${filename##*/})
+              fi
+              # cleanup
+              $(rm ~/.warp/function_namespaces/$3/locations.txt-E)
+            fi
+            printf "Successfully removed $4 from $3\n"
+          elif [ -n "$3" ]; then
+            # XXX error checking needed
+            if [ -d ~/.warp/function_namespaces/"$3" ]; then
+              $(rm -r ~/.warp/function_namespaces/$3)
+            fi
+            printf "Successfully removed $3\n"
           else
-            printf "\nUsage: docker function rm [OPTIONS] NAMESPACE\n\n"
-            printf "Remove custom functions in a namespace\n\n"
+            printf "\nUsage: docker function rm [OPTIONS] NAMESPACE [URI]\n\n"
+            printf "Remove custom functions in a namespace or the entire namespace\n\n"
           fi
         elif [ $2 == "update" ]; then
           comm_exists=1
