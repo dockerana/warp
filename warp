@@ -154,7 +154,7 @@ run_warp_command() {
           warp_install_command $*
         elif [ "$1" == "uninstall" ]; then
           warp_uninstall_command $*
-        elif [ ""$1" == "upgrade" ]; then
+        elif [ "$1" == "upgrade" ]; then
           warp_upgrade_command $*
         fi
       fi
