@@ -14,7 +14,7 @@ Provides capability to dynamically load functions and namespaces from your own h
 
 ### Install
 
-***DISCLAIMER*** - this will move your existing Docker binary to from `docker` to `docker-orig` and `warp` will take the place of `docker`, install with caution!
+***DISCLAIMER*** - this will move your existing Docker binary from `docker` to `docker-orig` and `warp` will take the place of `docker`, install with caution!
 
 ```
 curl -sSL warp.dockerana.com > warp
