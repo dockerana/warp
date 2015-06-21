@@ -16,6 +16,8 @@ export TOP_PID=$$
 # curl | wget
 # sudo | su
 # tee
+# mkdir
+# touch
 
 # potential to use for in-dev
 #  awk
@@ -32,8 +34,14 @@ additional_warp_commands() {
   printf "\n--------\n\n"
   printf "Additional warp commands:\n\n"
   printf "alias\t\t Alias a function name to something else XXX TODO\n"
-  printf "function\t Configure additional custom functions to be added XXX TODO\n"
+  if command_exists docker-compose; then
+    printf "compose\t\t Run docker-compose commands\n"
+  fi
+  printf "function\t Configure additional custom functions to be added\n"
   printf "install\t\t Install various ecosystem components including Docker\n"
+  if command_exists docker-machine; then
+    printf "machine\t\t Run docker-machine commands\n"
+  fi
   printf "original\t Show only original Docker command output XXX TODO\n"
   printf "uninstall\t Uninstall various ecosystem components including Docker\n"
   printf "update\t\t Update various ecosystem components including Docker\n\n"
@@ -209,7 +217,57 @@ warp_function_command() {
   #  check file or downlaod
   # rm
   #  remove location from .dotfile
-  echo "TODO"
+  function_args=("add" "rm" "update")
+  if [ -n "$2" ]; then
+    comm_exists=0
+    for i in "${function_args[@]}"
+    do
+      if [ "$2" == "$i" ]; then
+        if [ $2 == "add" ]; then
+          comm_exists=1
+          if [[ -n "$3" && -n "$4" ]]; then
+            # XXX
+            echo "TODO"
+          else
+            printf "\nUsage: docker function add [OPTIONS] FILE_URI NAMESPACE\n\n"
+            printf "Add custom functions from either a file path or a url\n\n"
+          fi
+        elif [ $2 == "rm" ]; then
+          comm_exists=1
+          if [ -n "$3" ]; then
+            # XXX
+            echo "TODO"
+          else
+            printf "\nUsage: docker function rm [OPTIONS] NAMESPACE\n\n"
+            printf "Remove custom functions in a namespace\n\n"
+          fi
+        elif [ $2 == "update" ]; then
+          comm_exists=1
+          if [[ -n "$3" && -n "$4" ]]; then
+            # XXX
+            echo "TODO"
+          elif [ -n "$3" ]; then
+            # XXX
+            echo "TODO"
+          else
+            printf "\nUsage: docker function update [OPTIONS] [NAMESPACE]\n\n"
+            printf "Update all custom functions or only a specific namespace\n\n"
+          fi
+        fi
+      fi
+    done
+    if [ "$comm_exists" == 0 ]; then
+      printf "\nUsage: docker function [OPTIONS] COMMAND\n\n"
+      printf "Add, remove or update custom functions\n\n"
+      printf "Commands:\n"
+      printf "\tadd\t Add a new function namespace\n"
+      printf "\trm\t Remove a function namespace\n"
+      printf "\tupdate\t Update function namespaces\n\n"
+      printf "Run 'docker function COMMAND --help' for more information on a command.\n\n"
+    fi
+  else
+    printf "warp: \"$1\" requires at least 1 argument. See 'warp $1 --help'."
+  fi
 }
 
 warp_original_command() {
@@ -458,6 +516,14 @@ getrc() {
 
 }
 
+storage() {
+  $(mkdir -p ~/.warp)
+  $(mkdir -p ~/.warp/function_namespaces)
+  $(mkdir -p ~/.warp/versions)
+  $(touch ~/.warp/aliases.txt)
+}
+
+storage
 getrc
 read_args "$@"
 
