@@ -722,38 +722,40 @@ storage() {
 check_install() {
   if command_exists docker; then
     dkr=$(which docker)
-    if [[ ! -f ~/.warp/version && ! -f "$dkr-orig" ]]; then
-      # begin credit to https://get.docker.com/
-      user="$(id -un 2>/dev/null || true)"
-      sh_c='sh -c'
-      if [ "$user" != 'root' ]; then
-        if command_exists sudo; then
-          sh_c='sudo -E sh -c'
-        elif command_exists su; then
-          sh_c='su -c'
-        else
-          printf "Error: this installer needs the ability to run commands as root.\n"
-          printf "We are unable to find either \"sudo\" or \"su\" available to make this happen.\n"
-          exit 1
+    if [ ! -f ~/.warp/version ]; then
+      if [ ! command_exists docker-orig ]; then
+        # begin credit to https://get.docker.com/
+        user="$(id -un 2>/dev/null || true)"
+        sh_c='sh -c'
+        if [ "$user" != 'root' ]; then
+          if command_exists sudo; then
+            sh_c='sudo -E sh -c'
+          elif command_exists su; then
+            sh_c='su -c'
+          else
+            printf "Error: this installer needs the ability to run commands as root.\n"
+            printf "We are unable to find either \"sudo\" or \"su\" available to make this happen.\n"
+            exit 1
+          fi
         fi
-      fi
 
-      curl=''
-      if command_exists curl; then
-        curl='curl -sSL'
-      elif command_exists wget; then
-        curl='wget -qO-'
-      elif command_exists busybox && busybox --list-modules | grep -q wget; then
-        curl='busybox wget -qO-'
-      fi
-      # end credit
+        curl=''
+        if command_exists curl; then
+          curl='curl -sSL'
+        elif command_exists wget; then
+          curl='wget -qO-'
+        elif command_exists busybox && busybox --list-modules | grep -q wget; then
+          curl='busybox wget -qO-'
+        fi
+        # end credit
 
-      # using cp in case the following curl fails
-      install_comm="$sh_c 'cp $dkr $dkr-orig'"
-      eval "$install_comm"
-      install_comm="$sh_c '$curl warp.dockerana.com > $dkr'"
-      eval "$install_comm"
-      exit 0
+        # using cp in case the following curl fails
+        install_comm="$sh_c 'cp $dkr $dkr-orig'"
+        eval "$install_comm"
+        install_comm="$sh_c '$curl warp.dockerana.com > $dkr'"
+        eval "$install_comm"
+        exit 0
+      fi
     fi
   fi
 }
