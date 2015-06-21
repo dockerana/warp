@@ -12,8 +12,14 @@ export TOP_PID=$$
 #   cut
 #   eval (shell built-in)
 #   which
-#   tee
 #   tr
+#   id
+#   uname
+#   curl | wget
+#   sudo | su
+#   tee
+#   mkdir
+#   touch
 
 # potential to use for in-dev
 #   fmt
@@ -24,6 +30,47 @@ version=0.1.0
 
 command_exists() {
   command -v "$@" > /dev/null 2>&1
+}
+
+additional_warp_commands() {
+  printf "\n--------\n\n"
+  printf "Additional warp commands:\n\n"
+  printf "alias\t\t Alias a function name to something else XXX TODO\n"
+  if command_exists docker-compose; then
+    printf "compose\t\t Run docker-compose commands\n"
+  fi
+  printf "function\t Configure additional custom functions to be added\n"
+  printf "install\t\t Install various ecosystem components including Docker\n"
+  if command_exists docker-machine; then
+    printf "machine\t\t Run docker-machine commands\n"
+  fi
+  printf "original\t Show only original Docker command output XXX TODO\n"
+  printf "uninstall\t Uninstall various ecosystem components including Docker\n"
+  printf "update\t\t Update various ecosystem components including Docker\n\n"
+  printf "Run 'docker COMMAND --help' for more information on a command.\n"
+}
+
+additional_custom_commands() {
+  printf "\n--------\n\n"
+  printf "Additional custom commands:\n"
+  # update based on found functions in .dotfile and aliases
+  namespaces=$(ls ~/.warp/function_namespaces)
+  for d in $namespaces
+  do
+    printf "\n$d\n"
+    files=$(cat ~/.warp/function_namespaces/$d/locations.txt)
+    for f in $files
+    do
+      while read p; do
+        #printf "\t $p\n"
+        pattern="[0-9a-zA-Z ]+\(\)"
+        if [[ "$p" =~ $pattern ]]; then
+          printf "\t ${p%(*}\n"
+        fi
+      done <~/.warp/function_namespaces/$d/${f##*/}
+    done
+  done
+  printf "Run 'docker COMMAND --help' for more information on a command.\n\n"
 }
 
 get_docker_commands() {
@@ -46,16 +93,95 @@ get_docker_commands() {
   done <<< "$out"
 }
 
-run_native_docker() {
-  if [ -n "$1" ]
-  then
-    docker_command=0
+get_compose_commands() {
+  COMPOSE_COMMANDS=()
+  # why is compose output to stderr instead of stdout!??!
+  if [ $(which docker-compose) ]; then
+    out=$(docker-compose 2>&1 | tee)
+  else
+    out=""
+  fi
+  flag=0
+  while read -r line; do
+    if [ $flag == 1 ]; then
+      comm=($line)
+      #comm="${comm[0]}"
+      if [ "$comm" == "" ]; then
+        flag=0
+      else
+        COMPOSE_COMMANDS+=($comm)
+      fi
+    fi
+    if [[ "$line" =~ ^Commands: ]]; then
+      flag=1
+    fi
+  done <<< "$out"
+}
+
+get_machine_commands() {
+  MACHINE_COMMANDS=()
+  out=$($(which docker-machine))
+  flag=0
+  while read -r line; do
+    if [ $flag == 1 ]; then
+      comm=($line)
+      #comm="${comm[0]}"
+      if [ "$comm" == "" ]; then
+        flag=0
+      else
+        MACHINE_COMMANDS+=($comm)
+      fi
+    fi
+    if [[ "$line" =~ ^Commands: ]]; then
+      flag=1
+    fi
+  done <<< "$out"
+}
+
+run_native_docker_ecosystem() {
+  docker_command=0
+  compose_command=0
+  machine_command=0
+  if [ -n "$1" ]; then
     for i in "${DOCKER_COMMANDS[@]}"
     do
       if [ "$i" == "$1" ] ; then
         docker_command=1
       fi
     done
+    if [ -n "$2" ]; then
+      if [ "$1" == "compose" ]; then
+        for i in "${COMPOSE_COMMANDS[@]}"
+        do
+          if [ "$i" == "$2" ] ; then
+            compose_command=1
+          fi
+        done
+      elif [ "$1" == "machine" ]; then
+        for i in "${MACHINE_COMMANDS[@]}"
+        do
+          if [ "$i" == "$2" ] ; then
+            machine_command=1
+          fi
+        done
+      fi
+    else
+      if [ "$1" == "compose" ]; then
+        out=$(docker-compose 2>&1 | tee)
+        while read -r line; do
+          echo "$line"
+        done <<< "$out"
+        additional_warp_commands
+        additional_custom_commands
+        kill -s TERM $TOP_PID
+      elif [ "$1" == "machine" ]; then
+        dkr_native="$(which docker-machine)"
+        eval "$dkr_native"
+        additional_warp_commands
+        additional_custom_commands
+        kill -s TERM $TOP_PID
+      fi
+    fi
   fi
   if [ "$docker_command" == 1 ]; then
     dkr_native="$(which docker) $*"
@@ -66,10 +192,137 @@ run_native_docker() {
     IFS=$' \t\n'
 
     kill -s TERM $TOP_PID
+  elif [ "$compose_command" == 1 ]; then
+    shift
+    dkr_native="$(which docker-compose) $*"
+    eval "$dkr_native"
+    kill -s TERM $TOP_PID
+  elif [ "$machine_command" == 1 ]; then
+    shift
+    dkr_native="$(which docker-machine) $*"
+    eval "$dkr_native"
+    kill -s TERM $TOP_PID
   else
-    # XXX check against machine, compose, custom add-ins, etc.
-    echo
+    # checks only commands not in docker_commands
+    for i in "${COMPOSE_COMMANDS[@]}"
+    do
+      if [ "$i" == "$1" ] ; then
+        dkr_native="$(which docker-compose) $*"
+        eval "$dkr_native"
+        kill -s TERM $TOP_PID
+      fi
+    done
+    for i in "${MACHINE_COMMANDS[@]}"
+    do
+      if [ "$i" == "$1" ] ; then
+        dkr_native="$(which docker-machine) $*"
+        eval "$dkr_native"
+        kill -s TERM $TOP_PID
+      fi
+    done
   fi
+}
+
+warp_alias_command() {
+  # XXX
+  # store aliases in .dotfile for given name and list of functions
+  echo "TODO"
+}
+
+warp_function_command() {
+  function_args=("add" "rm" "update")
+  if [ -n "$2" ]; then
+    comm_exists=0
+    for i in "${function_args[@]}"
+    do
+      if [ "$2" == "$i" ]; then
+        if [ $2 == "add" ]; then
+          comm_exists=1
+          if [[ -n "$3" && -n "$4" ]]; then
+            # XXX error checking needed
+            $(mkdir -p ~/.warp/function_namespaces/"$3")
+            echo "$4" >> ~/.warp/function_namespaces/$3/locations.txt
+
+            base=$4
+            # it's a url
+            if [[ $4 =~ ^http ]]; then
+              eval $curl $4 > ~/.warp/function_namespaces/$3/${base##*/}
+            # it's a file
+            else
+              $(cp $4 ~/.warp/function_namespaces/$3/${base##*/})
+            fi
+          else
+            printf "\nUsage: docker function add [OPTIONS] NAMESPACE URI\n\n"
+            printf "Add custom functions from either a file path or a url\n\n"
+          fi
+        elif [ $2 == "rm" ]; then
+          comm_exists=1
+          if [[ -n "$3" && -n "$4" ]]; then
+            # XXX error checking needed
+            location_exists=0
+            if [ -f ~/.warp/function_namespaces/"$3"/locations.txt ]; then
+              while read p; do
+                if [ "$4" == "$p" ]; then
+                  location_exists=1
+                fi
+              done <~/.warp/function_namespaces/"$3"/locations.txt
+            fi
+            if [ "$location_exists" == 1 ]; then
+              out="sed -i -E -e 's|$4||' ~/.warp/function_namespaces/$3/locations.txt"
+              eval $out
+              filename=$4
+              if [ -f ~/.warp/function_namespaces/"$3"/"${filename##*/}" ]; then
+                $(rm ~/.warp/function_namespaces/$3/${filename##*/})
+              fi
+              # cleanup
+              if [ -f ~/.warp/function_namespaces/"$3"/locations.txt-E ]; then
+                $(rm ~/.warp/function_namespaces/$3/locations.txt-E)
+              fi
+            fi
+            printf "Successfully removed $4 from $3\n"
+          elif [ -n "$3" ]; then
+            # XXX error checking needed
+            if [ -d ~/.warp/function_namespaces/"$3" ]; then
+              $(rm -r ~/.warp/function_namespaces/$3)
+            fi
+            printf "Successfully removed $3\n"
+          else
+            printf "\nUsage: docker function rm [OPTIONS] NAMESPACE [URI]\n\n"
+            printf "Remove custom functions in a namespace or the entire namespace\n\n"
+          fi
+        elif [ $2 == "update" ]; then
+          comm_exists=1
+          if [[ -n "$3" && -n "$4" ]]; then
+            # XXX
+            echo "TODO"
+          elif [ -n "$3" ]; then
+            # XXX
+            echo "TODO"
+          else
+            printf "\nUsage: docker function update [OPTIONS] [NAMESPACE]\n\n"
+            printf "Update all custom functions or only a specific namespace\n\n"
+          fi
+        fi
+      fi
+    done
+    if [ "$comm_exists" == 0 ]; then
+      printf "\nUsage: docker function [OPTIONS] COMMAND\n\n"
+      printf "Add, remove or update custom functions\n\n"
+      printf "Commands:\n"
+      printf "\tadd\t Add a new function namespace\n"
+      printf "\trm\t Remove a function namespace\n"
+      printf "\tupdate\t Update function namespaces\n\n"
+      printf "Run 'docker function COMMAND --help' for more information on a command.\n\n"
+    fi
+  else
+    printf "warp: \"$1\" requires at least 1 argument. See 'warp $1 --help'."
+  fi
+}
+
+warp_original_command() {
+  # XXX
+  # change alias back for docker, output how to get warp again
+  echo "TODO"
 }
 
 warp_install_command() {
@@ -89,61 +342,90 @@ warp_install_command() {
             eval "$install_comm"
           fi
         fi
+        # default to linux x86_64
+        platform="linux"
+        arch="amd64"
+        path="/usr/bin"
+        uhost=$(uname -sm)
+        if [[ "$uhost" =~ ^Darwin ]]; then
+          platform="darwin"
+          path="/usr/local/bin"
+        fi
+        if [[ "$uhost" =~ i386 ]]; then
+          arch="386"
+        fi
         if [[ $2 == "machine" || $2 == "all" ]]; then
           comm_exists=1
           echo "installing machine..."
           if command_exists docker-machine; then
             echo "machine already installed, skipping..."
           else
-            echo
-            # XXX
+            machine_url="https://github.com/docker/machine/releases/download/v0.3.0/docker-machine_$platform-$arch"
+            install_comm="$sh_c '$curl $machine_url > $path/docker-machine'"
+            eval "$install_comm"
+            install_comm="$sh_c 'chmod +x $path/docker-machine'"
+            eval "$install_comm"
           fi
         fi
         if [[ $2 == "compose" || $2 == "all" ]]; then
           comm_exists=1
           echo "installing compose..."
-          if command_exists compose; then
+          if command_exists docker-compose; then
             echo "compose already installed, skipping..."
           else
             echo
-            # XXX
-          fi
-        fi
-        if [[ $2 == "swarm" || $2 == "all" ]]; then
-          comm_exists=1
-          echo "installing swarm..."
-          if command_exists swarm; then
-            echo "swarm already installed, skipping..."
-          else
-            echo
-            # XXX
+            compose_url="https://github.com/docker/compose/releases/download/1.3.0/docker-compose-$(uname -s)-$(uname -m)"
+            install_comm="$sh_c '$curl $compose_url > $path/docker-compose'"
+            eval "$install_comm"
+            install_comm="$sh_c 'chmod +x $path/docker-compose'"
+            eval "$install_comm"
           fi
         fi
       fi
     done
     if [ "$comm_exists" == 0 ]; then
-      # XXX show help if second arg isn't known
-      echo "unknown"
+      printf "\nUsage: docker install [OPTIONS] TOOL\n\n"
+      printf "Install Docker ecosystem tools\n\n"
+      printf "Tools:\n"
+      printf "\tdocker\t Install Docker\n"
+      printf "\tcompose\t Install Docker Compose\n"
+      printf "\tmachine\t Install Docker Machine\n"
+      printf "\tall\t Install all Docker ecosystem tools\n"
     fi
   else
-    # XXX show help if second arg isn't supplied
-    echo "need second arg"
+    printf "warp: \"$1\" requires 1 argument. See 'warp $1 --help'."
   fi
 }
 
 warp_uninstall_command() {
-  echo
+  # XXX
+  echo "TODO"
 }
 
-warp_upgrade_command() {
-  echo
+warp_update_command() {
+  # XXX
+  echo "TODO"
 }
 
 run_warp_command() {
-  warp_install_commands=("install" "uninstall" "upgrade")
-  ecosystem=("docker" "machine" "compose" "swarm" "all")
+  warp_install_commands=("alias" "function" "install" "original" "uninstall" "update")
+  ecosystem=("docker" "machine" "compose" "all")
 
-  # credit to https://get.docker.com/
+  # begin credit to https://get.docker.com/
+  user="$(id -un 2>/dev/null || true)"
+  sh_c='sh -c'
+  if [ "$user" != 'root' ]; then
+    if command_exists sudo; then
+      sh_c='sudo -E sh -c'
+    elif command_exists su; then
+      sh_c='su -c'
+    else
+      printf "Error: this installer needs the ability to run commands as root.\n"
+      printf "We are unable to find either \"sudo\" or \"su\" available to make this happen.\n"
+      exit 1
+    fi
+  fi
+
   curl=''
   if command_exists curl; then
     curl='curl -sSL'
@@ -152,18 +434,25 @@ run_warp_command() {
   elif command_exists busybox && busybox --list-modules | grep -q wget; then
     curl='busybox wget -qO-'
   fi
+  # end credit
 
   if [ -n "$1" ]
   then
     for i in "${warp_install_commands[@]}"
     do
       if [ "$1" == "$i" ]; then
-        if [ "$1" == "install" ]; then
+        if [ "$1" == "alias" ]; then
+          warp_alias_command "$@"
+        elif [ "$1" == "function" ]; then
+          warp_function_command "$@"
+        elif [ "$1" == "install" ]; then
           warp_install_command "$@"
+        elif [ "$1" == "original" ]; then
+          warp_original_command "$@"
         elif [ "$1" == "uninstall" ]; then
           warp_uninstall_command "$@"
-        elif [ "$1" == "upgrade" ]; then
-          warp_upgrade_command "$@"
+        elif [ "$1" == "update" ]; then
+          warp_update_command "$@"
         fi
       fi
     done
@@ -181,15 +470,17 @@ read_args() {
         while read -r line; do
           echo "$line" | cut -c1-80
         done <<< "$out"
+        additional_warp_commands
+        additional_custom_commands
       )
     # docker is not yet installed
     else
       printf "Usage: docker [OPTIONS] COMMAND [arg...]\n\n"
       printf "This is warp $version, Docker is not currently installed.\n\n"
-      printf "Commands:\n"
-      printf "\tinstall\t\t Install various ecosystem components including Docker\n"
-      printf "\tuninstall\t Uninstall various ecosystem components including Docker\n"
-      printf "\tupgrade\t\t Upgrade various ecosystem components including Docker\n\n"
+      printf "Commands:\n\n"
+      printf "install\t\t Install various ecosystem components including Docker\n"
+      printf "uninstall\t Uninstall various ecosystem components including Docker\n"
+      printf "update\t\t Update various ecosystem components including Docker\n\n"
       printf "Run 'docker COMMAND --help' for more information on a command.\n\n"
     fi
   # there are args, do something
@@ -200,7 +491,14 @@ read_args() {
         # docker is installed, get native docker commands
         # check command, if native docker command, pass off
         get_docker_commands
-        run_native_docker "$@"
+
+        if command_exists docker-compose ; then
+          get_compose_commands
+        fi
+        if command_exists docker-machine ; then
+          get_machine_commands
+        fi
+        run_native_docker_ecosystem "$@"
       )
     fi
     run_warp_command "$@"
@@ -353,6 +651,14 @@ getrc() {
 
 }
 
+storage() {
+  $(mkdir -p ~/.warp)
+  $(mkdir -p ~/.warp/function_namespaces)
+  $(mkdir -p ~/.warp/versions)
+  $(touch ~/.warp/aliases.txt)
+}
+
+storage
 getrc
 read_args "$@"
 
