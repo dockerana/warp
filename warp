@@ -177,7 +177,7 @@ run_native_docker_ecosystem() {
       elif [ "$1" == "machine" ]; then
         dkr_native="$(which docker-machine)"
 
-        out=$($dkr_native)
+        out=$($dkr_native 2>&1 | tee)
         IFS=$'\n'
         fformat $out
         IFS=$' \t\n'
@@ -191,7 +191,7 @@ run_native_docker_ecosystem() {
   if [ "$docker_command" == 1 ]; then
     dkr_native="$(which docker) $*"
 
-    out=$($dkr_native)
+    out=$($dkr_native 2>&1 | tee)
     IFS=$'\n'
     fformat $out
     IFS=$' \t\n'
@@ -201,7 +201,7 @@ run_native_docker_ecosystem() {
     shift
     dkr_native="$(which docker-compose) $*"
 
-    out=$($dkr_native)
+    out=$($dkr_native 2>&1 | tee)
     IFS=$'\n'
     fformat $out
     IFS=$' \t\n'
@@ -211,7 +211,7 @@ run_native_docker_ecosystem() {
     shift
     dkr_native="$(which docker-machine) $*"
 
-    out=$($dkr_native)
+    out=$($dkr_native 2>&1 | tee)
     IFS=$'\n'
     fformat $out
     IFS=$' \t\n'
@@ -224,7 +224,7 @@ run_native_docker_ecosystem() {
       if [ "$i" == "$1" ] ; then
         dkr_native="$(which docker-compose) $*"
 
-        out=$($dkr_native)
+        out=$($dkr_native 2>&1 | tee)
         IFS=$'\n'
         fformat $out
         IFS=$' \t\n'
@@ -237,7 +237,7 @@ run_native_docker_ecosystem() {
       if [ "$i" == "$1" ] ; then
         dkr_native="$(which docker-machine) $*"
 
-        out=$($dkr_native)
+        out=$($dkr_native 2>&1 | tee)
         IFS=$'\n'
         fformat $out
         IFS=$' \t\n'
@@ -589,13 +589,6 @@ fformat() {
 
   local in=${@}
 
-  local _FG_ACTION=$_FG_BRIGHT_WHITE
-  local _BG_ACTION=$_BG_BLUE
-  local _FG_DESCRIPTION=$_FG_BRIGHT_YELLOW
-  local _BG_DESCRIPTION=$_BG_BLACK
-  local _FG_WRAP=$_FG_BRIGHT_RED
-  local _BG_WRAP=$_BG_BLACK
-
   if [[ $WARP_BEHAVIOR == "fold" ]]
   then
     #local in2=$(echo "$in" | fmt -w 40)
@@ -631,6 +624,7 @@ fformat() {
 
   echo "$in2" \
       | sed -E -e "s/^([\ ]+)([A-Za-z0-9]+)([\ ]{2,})(.*)/\1$_FG_ACTION$_BG_ACTION\2$_RESET\3\4/g" \
+      | sed -E -e "s/^(.*)(ERROR|error|Error|FATA|no such)(.*)$/$_BG_ERROR$_FG_ERROR\1\2\3$_RESET/g" \
       | tr '|' '\n'
   #    | sed -E -e "s/^([\ ]+)([A-Za-z0-9]+)([\ ]{2,})(.*)/\1$_FG_ACTION$_BG_ACTION\2\3$_FG_DESCRIPTION$_BG_DESCRIPTION\4/g" \
   #    | tr '|' '\n'
@@ -657,8 +651,14 @@ getrc() {
   # defaults, all easily overwritten with well-formed definitions in your
   # very own ~/.warprc
   export WARP_WIDTH=80
-  export WARP_ERROR_BG=$_BG_RED
-  export WARP_ERROR_FG=$_FG_BRIGHT_WHITE
+  export _BG_ERROR=$_BG_RED
+  export _FG_ERROR=$_FG_BRIGHT_WHITE
+  export _FG_ACTION=$_FG_BRIGHT_WHITE
+  export _BG_ACTION=$_BG_BLUE
+  export _FG_DESCRIPTION=$_FG_BRIGHT_YELLOW
+  export _BG_DESCRIPTION=$_BG_BLACK
+  export _FG_WRAP=$_FG_BRIGHT_RED
+  export _BG_WRAP=$_BG_BLACK
 
   # WARP_BEHAVIOR defines line wrapping or truncating modes: 'fold' or 'truncate'
   #export WARP_BEHAVIOR=fold # 'truncate' also supported
@@ -671,7 +671,8 @@ getrc() {
 
   if [ -f ~/.warprc ]
   then
-    $(egrep '^WARP_[A-Z0-9_]+=[A-Za-z0-9]+$' ~/.warprc | sed -e 's/^/export /')
+    #$(egrep '^(WARP)?_[A-Z0-9_]+=[\$_A-Za-z0-9]+$' ~/.warprc | sed -e 's/^/export /')
+    source ~/.warprc
     #env | egrep ^WARP_
   fi
 
