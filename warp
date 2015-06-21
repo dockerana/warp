@@ -50,9 +50,24 @@ additional_warp_commands() {
 
 additional_custom_commands() {
   printf "\n--------\n\n"
-  printf "Additional custom commands:\n\n"
-  # XXX
+  printf "Additional custom commands:\n"
   # update based on found functions in .dotfile and aliases
+  namespaces=$(ls ~/.warp/function_namespaces)
+  for d in $namespaces
+  do
+    printf "\n$d\n"
+    files=$(cat ~/.warp/function_namespaces/$d/locations.txt)
+    for f in $files
+    do
+      while read p; do
+        #printf "\t $p\n"
+        pattern="[0-9a-zA-Z ]+\(\)"
+        if [[ "$p" =~ $pattern ]]; then
+          printf "\t ${p%(*}\n"
+        fi
+      done <~/.warp/function_namespaces/$d/${f##*/}
+    done
+  done
   printf "Run 'docker COMMAND --help' for more information on a command.\n\n"
 }
 
@@ -253,7 +268,9 @@ warp_function_command() {
                 $(rm ~/.warp/function_namespaces/$3/${filename##*/})
               fi
               # cleanup
-              $(rm ~/.warp/function_namespaces/$3/locations.txt-E)
+              if [ -f ~/.warp/function_namespaces/"$3"/locations.txt-E ]; then
+                $(rm ~/.warp/function_namespaces/$3/locations.txt-E)
+              fi
             fi
             printf "Successfully removed $4 from $3\n"
           elif [ -n "$3" ]; then
